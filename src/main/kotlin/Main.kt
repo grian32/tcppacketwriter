@@ -30,8 +30,13 @@ suspend fun main(args: Array<String>) {
                 exitProcess(0)
             }
             next == "w" -> {
-                writeChannel.writeFully(bytes.nioBuffer())
-                println("sent: ${bytes.nioBuffer()}")
+                val nioBuffer = bytes.nioBuffer()
+                writeChannel.writeFully(nioBuffer)
+
+                val byteArr = ByteArray(bytes.readableBytes())
+                bytes.readBytes(byteArr)
+                println("sent: ${byteArr.toList()}")
+
                 bytes.clear()
             }
             next == "rc" -> {

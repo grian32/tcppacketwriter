@@ -22,7 +22,13 @@ suspend fun main(args: Array<String>) {
         val next = sc.nextLine()
 
         when {
-            next == "q" -> exitProcess(0)
+            next == "q" -> {
+                withContext(Dispatchers.IO) {
+                    socket.close()
+                    selectorManager.close()
+                }
+                exitProcess(0)
+            }
             next == "w" -> {
                 writeChannel.writeFully(bytes.nioBuffer())
                 println("sent: ${bytes.nioBuffer()}")

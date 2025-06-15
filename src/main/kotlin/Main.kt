@@ -43,7 +43,6 @@ suspend fun main(args: Array<String>) {
             next.startsWith("str") -> {
                 val value = next.split(" ").drop(1).joinToString(" ")
                 bytes.writeInt(value.length)
-                println(value.toByteArray().toList())
                 bytes.writeBytes(value.toByteArray())
             }
         }

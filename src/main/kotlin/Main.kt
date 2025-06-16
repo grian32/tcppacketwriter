@@ -24,6 +24,8 @@ suspend fun main(args: Array<String>) {
     val sc = Scanner(System.`in`)
     val bytes = Buffer()
 
+    // TODO: watch for responses
+
     while (sc.hasNextLine()) {
         val next = sc.nextLine()
 
@@ -39,15 +41,6 @@ suspend fun main(args: Array<String>) {
                 println("Sending: ${bytes.peek().readByteArray().toList()}")
                 writeChannel.writePacket(bytes)
                 writeChannel.flush()
-
-                try {
-                    withTimeoutOrNull(500) {
-                        val response = readChannel.readByteArray(readChannel.availableForRead)
-                        println("Received: ${response.toList()}")
-                    } ?: println("No response received")
-                } catch (e: Exception) {
-                    println("Error reading response: ${e.message}")
-                }
 
                 bytes.clear()
             }

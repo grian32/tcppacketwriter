@@ -12,8 +12,6 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("io.ktor:ktor-network:3.1.3")
-    implementation("io.ktor:ktor-server-netty:3.1.3")
-    implementation("io.ktor:ktor-server-core-jvm:3.1.3")
 }
 
 tasks.test {

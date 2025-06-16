@@ -3,11 +3,14 @@ package me.grian
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
-import io.netty.buffer.Unpooled
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
 import java.util.*
 import kotlin.system.exitProcess
+import kotlin.text.toByteArray
 
 suspend fun main(args: Array<String>) {
     val selectorManager = SelectorManager(Dispatchers.IO)
@@ -16,7 +19,7 @@ suspend fun main(args: Array<String>) {
     var writeChannel = socket.openWriteChannel(autoFlush = true)
 
     val sc = Scanner(System.`in`)
-    val bytes = Unpooled.buffer()
+    val bytes = Buffer()
 
     while (sc.hasNextLine()) {
         val next = sc.nextLine()
@@ -30,12 +33,9 @@ suspend fun main(args: Array<String>) {
                 exitProcess(0)
             }
             next == "w" -> {
-                val nioBuffer = bytes.nioBuffer()
-                writeChannel.writeFully(nioBuffer)
+                println("sending: ${bytes.peek().readByteArray().toList()}")
+                writeChannel.writePacket(bytes)
 
-                val byteArr = ByteArray(bytes.readableBytes())
-                bytes.readBytes(byteArr)
-                println("sent: ${byteArr.toList()}")
                 bytes.clear()
             }
             next == "rc" -> {
@@ -48,12 +48,12 @@ suspend fun main(args: Array<String>) {
             }
             next.startsWith("byte") -> {
                 val value = next.split(" ")[1].removePrefix("0x").toByte()
-                bytes.writeByte(value.toInt())
+                bytes.writeByte(value)
             }
             next.startsWith("str") -> {
                 val value = next.split(" ").drop(1).joinToString(" ")
                 bytes.writeInt(value.length)
-                bytes.writeBytes(value.toByteArray())
+                bytes.writeFully(value.toByteArray())
             }
             next.startsWith("int") -> {
                 val value = next.split(" ")[1].toInt()

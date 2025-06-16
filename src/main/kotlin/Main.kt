@@ -36,7 +36,6 @@ suspend fun main(args: Array<String>) {
                 val byteArr = ByteArray(bytes.readableBytes())
                 bytes.readBytes(byteArr)
                 println("sent: ${byteArr.toList()}")
-
                 bytes.clear()
             }
             next == "rc" -> {
@@ -55,6 +54,10 @@ suspend fun main(args: Array<String>) {
                 val value = next.split(" ").drop(1).joinToString(" ")
                 bytes.writeInt(value.length)
                 bytes.writeBytes(value.toByteArray())
+            }
+            next.startsWith("int") -> {
+                val value = next.split(" ")[1].toInt()
+                bytes.writeInt(value)
             }
         }
     }

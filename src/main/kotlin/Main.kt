@@ -5,7 +5,9 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import java.util.*
@@ -16,6 +18,7 @@ suspend fun main(args: Array<String>) {
     val selectorManager = SelectorManager(Dispatchers.IO)
     var socket = aSocket(selectorManager).tcp().connect(args[0], args[1].toInt())
 
+    var readChannel = socket.openReadChannel()
     var writeChannel = socket.openWriteChannel(autoFlush = true)
 
     val sc = Scanner(System.`in`)
@@ -33,8 +36,18 @@ suspend fun main(args: Array<String>) {
                 exitProcess(0)
             }
             next == "w" -> {
-                println("sending: ${bytes.peek().readByteArray().toList()}")
+                println("Sending: ${bytes.peek().readByteArray().toList()}")
                 writeChannel.writePacket(bytes)
+                writeChannel.flush()
+
+                try {
+                    withTimeoutOrNull(500) {
+                        val response = readChannel.readByteArray(readChannel.availableForRead)
+                        println("Received: ${response.toList()}")
+                    } ?: println("No response received")
+                } catch (e: Exception) {
+                    println("Error reading response: ${e.message}")
+                }
 
                 bytes.clear()
             }
@@ -60,10 +73,5 @@ suspend fun main(args: Array<String>) {
                 bytes.writeInt(value)
             }
         }
-    }
-
-    withContext(Dispatchers.IO) {
-        socket.close()
-        selectorManager.close()
     }
 }
